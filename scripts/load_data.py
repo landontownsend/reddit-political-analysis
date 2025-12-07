@@ -9,25 +9,33 @@ from sqlalchemy import create_engine
 import os
 
 
-\
-
-
 def load_kaggle_data_to_db():
+    """Load into SQLite database"""
     print("Starting data loading...")
+    
+  
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.dirname(script_dir) if 'scripts' in script_dir else script_dir
+ 
+    os.chdir(project_root)
+    print("Current directory:", os.getcwd())
+    
+   
+    csv_path = os.path.join(project_root, 'data', 'politics.csv')
+    
+   
+    if not os.path.exists(csv_path):
+        print(f"ERROR: {csv_path} not found!")
+        print("Please place politics.csv in the data/ folder")
+        return
+    
+    politics_df = pd.read_csv(csv_path)
+    print(f"Loaded {len(politics_df)} rows")
+    
 
-
-os.chdir('/Users/landon/Downloads/reddit-political-analysis')
-
-
-print("Current directory:", os.getcwd())
-
-
-csv_path = '/Users/landon/Downloads/reddit-political-analysis/politics.csv'
-politics_df = pd.read_csv(csv_path)
-print(f"Loaded {len(politics_df)} rows")
-
-conn = sqlite3.connect('reddit_data.db')
-cursor = conn.cursor()
+    db_path = os.path.join(project_root, 'reddit_data.db')
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
 
 
 politics_df.to_sql('posts', conn, if_exists='replace', index=False)
