@@ -89,7 +89,7 @@ CREATE TABLE IF NOT EXISTS posts (
 
 politics_df.to_sql('posts', conn, if_exists='replace', index=False)
 
-print(f"✓ Successfully loaded {len(politics_df)} posts into database!")
+print(f" Successfully loaded {len(politics_df)} posts into database!")
 
 #Verify
 cursor.execute("SELECT COUNT(*) FROM posts")
