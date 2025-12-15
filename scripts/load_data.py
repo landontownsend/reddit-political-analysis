@@ -1,3 +1,6 @@
+
+
+
 import pandas as pd
 import numpy as np
 import re
@@ -33,6 +36,7 @@ def load_kaggle_data_to_db():
     db_path = os.path.join(project_root, 'reddit_data.db')
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
+    
 
 
 politics_df.to_sql('posts', conn, if_exists='replace', index=False)
@@ -108,6 +112,14 @@ for title, score, comments in cursor.fetchall():
 
 conn.close()
 print("\n Ready to run analysis! Now execute: python analyze_reddit_data.py")
+
+
+
+
+
+
+
+
 
 
 
