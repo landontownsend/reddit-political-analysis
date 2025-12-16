@@ -138,6 +138,7 @@ After running the analysis, you'll find these visualizations in the `outputs/` f
    - Top 10 highest-scoring posts
    - Sentiment vs. engagement scatter plot
    - Daily posting activity
+5. **roberta_sentiment_chart.png** - Bar chart visualising sentiment classiifcation results from RoBERTa model.
 
 ## Database Schema
 
@@ -169,6 +170,7 @@ CREATE TABLE posts (
 - **matplotlib** - Data visualization
 - **seaborn** - Enhanced plot styling
 - **NumPy** - Numerical computations
+- **transformers (Hugging Face)** - Advanced sentiment analysis (RoBERTa model)
 
 ## Analysis Methodology
 
@@ -180,6 +182,11 @@ CREATE TABLE posts (
 - Uses VADER (Valence Aware Dictionary and Sentiment Reasoner)
 - Assigns compound sentiment scores from -1 to +1
 - Categorizes posts as Positive (>0.05), Negative (<-0.05), or Neutral
+
+### RoBERTa Neural Networking
+- Uses Transformer-based neural network.
+- Performs advanced sentiment classification on posts.
+- Implemented using Hugging Face transformers library.
 
 ### Keyword Extraction
 - Tokenizes post titles using regex
@@ -273,7 +280,6 @@ sqlite3 reddit_data.db "SELECT COUNT(*) FROM posts;"
 
 Potential improvements for this project:
 
-- [ ] Topic modeling using Latent Dirichlet Allocation
 - [ ] Network analysis of user interactions
 - [ ] Comparison across multiple political subreddits
 - [ ] Time-series forecasting of sentiment trends over larger time period
