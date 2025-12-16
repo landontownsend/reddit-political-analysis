@@ -172,6 +172,7 @@ CREATE TABLE posts (
 - **seaborn** - Enhanced plot styling
 - **NumPy** - Numerical computations
 - **transformers (Hugging Face)** - Advanced sentiment analysis (RoBERTa model)
+- **scikit-learn** - Topic Modeling algorithims (LDA)
 
 ## Analysis Methodology
 
