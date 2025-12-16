@@ -139,6 +139,7 @@ After running the analysis, you'll find these visualizations in the `outputs/` f
    - Sentiment vs. engagement scatter plot
    - Daily posting activity
 5. **roberta_sentiment_chart.png** - Bar chart visualising sentiment classiifcation results from RoBERTa model.
+6. **topic_model_results.png** - Displays results from LDA topic modeling analysis.
 
 ## Database Schema
 
@@ -192,6 +193,10 @@ CREATE TABLE posts (
 - Tokenizes post titles using regex
 - Removes common stop words and Reddit-specific terms
 - Counts and ranks word frequencies
+
+### Topic Modeling
+- This module implements unsupervised machine learning using Latent Dirichlet Allocation (LDA) to uncover thematic clusters within discourse.
+- Key outputs include interpretably grouped keywords representing distinct topics, providing insight into the underlying narratives of the analyzed data.
 
 ### Engagement Metrics
 - Analyzes relationship between sentiment and post scores
