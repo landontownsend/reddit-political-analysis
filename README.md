@@ -14,6 +14,8 @@ This project analyzes political discourse patterns on Reddit by examining sentim
 - **Engagement Analytics**: Analysis of upvotes, comments, and posting patterns
 - **Temporal Analysis**: Sentiment and activity trends over time
 - **Data Visualization**: Professional charts and graphs for presenting findings
+- **Topic Modeling**: Modeling of topics using LDA Analysis
+- **RoBERTa Analysis**: Sentiment analysis using RoBERTa neural model
 
 ## Project Structure
 
@@ -117,6 +119,22 @@ This will:
 - Extract top keywords from discussions
 - Generate 4 visualization files in the `outputs/` folder
 - Print a comprehensive summary report to console
+
+```bash
+python advanced_sentiment.py
+```
+
+This will:
+- Perform RoBERTa sentiment analysis
+- Generate visualization in the `outputs/` folder
+
+```bash
+python topic_modeling.py
+```
+
+This will:
+- Conduct topic modeling according to the LDA model
+- Produce visualization displaying 5 topics in the `outputs/` folder
 
 ### Run SQL Query Demonstrations (Optional)
 
