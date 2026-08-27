@@ -1,11 +1,21 @@
+# Core dependencies for the standalone analysis scripts in scripts/.
 pandas==2.1.4
 matplotlib==3.8.2
 seaborn==0.13.0
 nltk==3.8.1
 wordcloud==1.9.3
 python-dotenv==1.0.0
+
+# Used by scripts/advanced_sentiment.py (RoBERTa) and scripts/topic_modeling.py (LDA).
 scikit-learn
 transformers
 torch
 tqdm
 scipy
+
+# --- Airflow orchestration (optional, heavy) ---
+# The Airflow-orchestrated pipeline (dags/reddit_political_analysis_dag.py) needs
+# apache-airflow, which is large and version-sensitive. Install it into a dedicated
+# virtual environment from requirements-airflow.txt instead of here. See the
+# "Airflow Orchestration" section of the README.
+# apache-airflow==2.10.4

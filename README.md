@@ -26,15 +26,24 @@ reddit-political-analysis/
 │   └── .gitkeep                  # Tracks folder structure
 ├── scripts/
 │   ├── load_data.py              # Loads CSV data into SQLite database
-│   ├── analyze_reddit_data.py   # Main analysis and visualization script
-│   └── sql_queries.py           # SQL query demonstrations (optional)
-├── outputs/                      # Generated visualizations (created automatically)
+│   ├── analyze_reddit_data.py    # Main analysis and visualization script (VADER)
+│   ├── advanced_sentiment.py     # RoBERTa (transformers) sentiment analysis
+│   ├── topic_modeling.py         # LDA topic modeling
+│   └── sql_example_queries.py    # SQL query demonstrations (optional)
+├── dags/
+│   └── reddit_political_analysis_dag.py  # Airflow DAG: all of the above as one pipeline
+├── output/                       # Generated visualizations (created automatically)
 │   ├── sentiment_distribution.png
 │   ├── sentiment_timeline.png
 │   ├── top_keywords.png
-│   └── engagement_analysis.png
+│   ├── engagement_analysis.png
+│   ├── roberta_sentiment_chart.png
+│   ├── roberta_sentiment_results.csv
+│   ├── topic_model_results.png
+│   └── summary_report.txt        # Text summary (written by the Airflow pipeline)
 ├── reddit_data.db               # SQLite database (generated)
-├── requirements.txt             # Python dependencies
+├── requirements.txt             # Python dependencies for the standalone scripts
+├── requirements-airflow.txt     # Extra dependencies for the Airflow pipeline (heavy)
 ├── .gitignore                   # Git ignore rules
 └── README.md                    # This file
 ```
@@ -159,6 +168,86 @@ After running the analysis, you'll find these visualizations in the `outputs/` f
 5. **roberta_sentiment_chart.png** - Bar chart visualising sentiment classiifcation results from RoBERTa model.
 6. **topic_model_results.png** - Displays results from LDA topic modeling analysis.
 
+The Airflow pipeline (below) produces all of the above plus `roberta_sentiment_results.csv`
+and a `summary_report.txt` text summary.
+
+## Airflow Orchestration
+
+The four manual steps (`load_data.py`, `analyze_reddit_data.py`, `advanced_sentiment.py`,
+`topic_modeling.py`) are also available as a single orchestrated **Apache Airflow** pipeline
+defined with the TaskFlow API in [`dags/reddit_political_analysis_dag.py`](dags/reddit_political_analysis_dag.py).
+Airflow runs the tasks in dependency order, retries them on failure, and gives you a UI with
+the dependency graph and per-task logs.
+
+### Pipeline (6 tasks)
+
+```
+load_data ──> run_vader_sentiment ──> generate_visualizations
+        │                        └──> generate_summary_report
+        ├──> run_roberta_sentiment
+        └──> run_topic_modeling
+```
+
+| Task | Replaces | Output |
+|------|----------|--------|
+| `load_data` | `load_data.py` | `posts` table in `reddit_data.db` |
+| `run_vader_sentiment` | VADER part of `analyze_reddit_data.py` | `posts_scored` table |
+| `generate_visualizations` | charts in `analyze_reddit_data.py` | `sentiment_distribution.png`, `sentiment_timeline.png`, `top_keywords.png`, `engagement_analysis.png` |
+| `generate_summary_report` | console summary in `analyze_reddit_data.py` | `output/summary_report.txt` |
+| `run_roberta_sentiment` | `advanced_sentiment.py` | `roberta_sentiment_chart.png`, `roberta_sentiment_results.csv` |
+| `run_topic_modeling` | `topic_modeling.py` | `topic_model_results.png` |
+
+`run_roberta_sentiment` and `run_topic_modeling` only need the raw `posts` table, so they run
+in parallel with `run_vader_sentiment` instead of waiting for it.
+
+### Running it locally
+
+A helper script does the venv + install + NLTK download (and, on macOS, the
+`setproctitle` workaround described below):
+
+```bash
+./scripts/setup_airflow.sh
+source airflow_venv/bin/activate
+
+export AIRFLOW_HOME=~/airflow
+export REDDIT_PROJECT_ROOT=$(pwd)     # so the DAG finds this repo on disk
+airflow standalone                    # first run creates the DB + an admin login
+
+# in another shell (same env): install the DAG and trigger a run
+cp dags/reddit_political_analysis_dag.py "$AIRFLOW_HOME/dags/"
+airflow dags trigger reddit_political_analysis
+# ...or open http://localhost:8080 and trigger "reddit_political_analysis" from the UI
+```
+
+Doing it by hand instead:
+
+```bash
+python3.12 -m venv airflow_venv && source airflow_venv/bin/activate
+AIRFLOW_VERSION=2.10.4; PYTHON_VERSION=3.12
+pip install "apache-airflow==${AIRFLOW_VERSION}" \
+  --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-${AIRFLOW_VERSION}/constraints-${PYTHON_VERSION}.txt"
+pip install -r requirements-airflow.txt
+python -c "import nltk; nltk.download('vader_lexicon'); nltk.download('stopwords')"
+```
+
+`PROJECT_ROOT` in the DAG is resolved automatically: it uses `$REDDIT_PROJECT_ROOT` if set,
+otherwise it walks up from the DAG file until it finds `data/politics.csv`, otherwise it
+falls back to `~/Downloads/reddit-political-analysis`. Set `REDDIT_PROJECT_ROOT` before
+`airflow standalone` when the copy in `$AIRFLOW_HOME/dags/` lives outside the repo.
+
+### macOS note
+
+On Apple-silicon macOS, Airflow's forking task runner can hang inside `setproctitle`
+(CoreFoundation is not `fork()`-safe), leaving tasks stuck in `running`. `scripts/setup_airflow.sh`
+installs a small `.pth` hook in the venv that makes `setproctitle` a no-op, which fixes it.
+If the webserver's log workers crash (`Worker ... was sent SIGSEGV!`), run the components
+separately instead of `airflow standalone`:
+
+```bash
+airflow scheduler --skip-serve-logs &
+airflow webserver --port 8080 &
+```
+
 ## Database Schema
 
 The project uses SQLite for efficient data storage and querying. For detailed SQL query examples and demonstrations, see `scripts/sql_queries.py`.
@@ -191,6 +280,7 @@ CREATE TABLE posts (
 - **NumPy** - Numerical computations
 - **transformers (Hugging Face)** - Advanced sentiment analysis (RoBERTa model)
 - **scikit-learn** - Topic Modeling algorithims (LDA)
+- **Apache Airflow** - Pipeline orchestration (TaskFlow API)
 
 ## Analysis Methodology
 
@@ -304,6 +394,8 @@ sqlite3 reddit_data.db "SELECT COUNT(*) FROM posts;"
 
 Potential improvements for this project:
 
+- [x] Topic modeling using Latent Dirichlet Allocation (`scripts/topic_modeling.py`, `run_topic_modeling` task)
+- [x] Orchestration with Apache Airflow (`dags/reddit_political_analysis_dag.py`)
 - [ ] Network analysis of user interactions
 - [ ] Comparison across multiple political subreddits
 - [ ] Time-series forecasting of sentiment trends over larger time period
@@ -349,7 +441,7 @@ Project Link: [https://github.com/landontownsend/reddit-political-analysis](http
 ---
 
 **Dataset Time Period**: December 2022  
-**Last Updated**: December 2024  
+**Last Updated**: August 2026  
 **Python Version**: 3.8+
 
 ---

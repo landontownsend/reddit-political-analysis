@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.Python
+
+# Virtual environments
+airflow_venv/
+.venv/
+
+# Airflow local home (created by `airflow standalone` under $AIRFLOW_HOME)
+airflow/
+airflow.cfg
+airflow.db
+airflow-webserver.pid
+standalone_admin_password.txt
+webserver_config.py
+logs/
+
+# OS / editor cruft
+.DS_Store
+.Rhistory

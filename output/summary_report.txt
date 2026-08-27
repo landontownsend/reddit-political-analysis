@@ -1,0 +1,6 @@
+Total posts analyzed: 1915
+  Neutral: 63.3%
+  Negative: 21.7%
+  Positive: 15.0%
+Average sentiment score: -0.045
+Average post score: 1184.3
